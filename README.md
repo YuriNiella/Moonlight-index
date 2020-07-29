@@ -109,20 +109,20 @@ moon.data$plot.diag
 ```
 
 <img src="README/Image2.png" width="800"  />
-<br/><br/>
+<br/>
 
 
 ## 4. Calculating the fine-scale moonlight index
 
 Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
 
-<img src="README/Image3.png" width="250"  />
+<img src="README/Image3.png" width="230"  />
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
 After calculating this angle, the moonlight index can be calculated using the function `MoonIndex()` by simply providing the output of `MoonVar()` and the alpha angle, using the following equation:
 
-<img src="README/Image4.png" width="300"  />
+<img src="README/Image4.png" width="330"  />
 
 In which **x** represents the moon illumination at the time of maximum angle, **beta** is the maximum angle of the moon in the sky during gear deployment, and **z** is the percentage of daily cloud cover. For those sets in which beta was lower than alpha (i.e. maximum angle in the sky not able to overcome the highest mountain), the moonlight index is automatically set to zero.
 
