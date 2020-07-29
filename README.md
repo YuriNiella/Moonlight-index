@@ -12,7 +12,7 @@ These variables can be then used to calculate the **fine-scale moonlight index**
 
 <img src="README/Image1.png" width="900"  />
 
-**A** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B** The maximum angle of the moon allows it to illuminate the westward part of the island.
+**A.** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B.** The maximum angle of the moon allows it to illuminate the westward part of the island.
 <br/>
 
 Not only the moon has to be **high enough** in the sky during a fishing set, but also the amount of **cloud cover** will influence the total moon light that reaches the surface of the water. Therefore, **daily average cloud cover (%)** data is also necessary for calculating the moonlight index. 
@@ -60,7 +60,7 @@ The input data to `MoonVar()` is a dataframe (e.g. `df`) in which each row repre
 | 55.275| -20.992| 2014-01-15 15:20:00| 2014-01-16 02:53:00|  0.50|
 | 55.277| -20.983| 2014-01-15 15:35:00| 2014-01-16 03:05:00|  0.50|
  
-You can then simply download the moon variables using `MoonVar(data)`:
+You can then simply download the moon variables using `MoonVar()`:
 
 ```
 > moon.data <- MoonVar(df)
@@ -116,7 +116,7 @@ moon.data$plot.diag
 
 Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
 
-<img src="README/Image3.png" width="220"  />
+<img src="README/Image3.png" width="210"  />
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
