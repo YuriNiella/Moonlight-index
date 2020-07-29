@@ -109,14 +109,13 @@ moon.data$plot.diag
 ```
 
 <img src="README/Image2.png" width="800"  />
-<br/>
 
 
 ## 4. Calculating the fine-scale moonlight index
 
 Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
 
-<img src="README/Image3.png" width="230"  />
+<img src="README/Image3.png" width="220"  />
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
