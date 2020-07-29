@@ -1,5 +1,5 @@
-# Moonlight index <img src="" align="right" width="120" />
-**Calculating a fine-scale moon luminosity variable for species occurrence data**
+# Moonlight index
+###**Calculating a fine-scale moon luminosity variable for species occurrence data**
 <br/><br/>
 
 ## 1. Overview
