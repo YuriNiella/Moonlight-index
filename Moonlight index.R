@@ -1,27 +1,3 @@
-#======================================================#
-# Code for automatically calculating moonlight indexes #
-# Author: Yuri Niella                                  #
-#======================================================#
-
-# Packages required for analysis
-library(suncalc)
-library(lunar)
-library(ggplot2)
-library(ggpubr)
-
-# height = maximum height of the mountain that limits the time of moonlight influence. 
-# data = fishing dataset (dataframe)
-
-### Testing
-
-data <- subset(df.sdl, select = c("lon_beg", "lat_beg", "dateTime_set.UTC", "Time.catch.UTC"))
-data$Moon.side[data$Moon.side == "West"] <- 3071
-data$Moon.side[data$Moon.side == "East"] <- 0
-data$Moon.side <- as.numeric(data$Moon.side)
-names(data) <- c("Lon", "Lat", "Time.set", "Time.ret")
-data$Time.ret[9102] <- data$Time.ret[9102] + 86400 # Correct retrieval time wrong!
-
-
 MoonVar <- function (data) {
 
   # Quality checks
@@ -35,9 +11,9 @@ MoonVar <- function (data) {
     stop("Retrieval/catch times can't happen before set times.")
   }
   
-  #=================================================#
+  #-------------------------------------------------#
   # Identify periods of exclusively daytime fishing #
-  #=================================================#
+  #-------------------------------------------------#
   Circadian.set <- NULL
   Circadian.ret <- NULL 
   Time.lapse <- NULL
@@ -55,23 +31,23 @@ MoonVar <- function (data) {
     }
 
     aux1 <- getSunlightTimes(date = as.Date(data$Time.set[i]), lon = data$Lon[i], lat = data$Lat[i],
-                             keep = c("dawn", "sunrise", "sunset", "dusk", "night"), tz = "UTC")
+                             keep = c("nauticalDawn", "sunrise", "sunset", "nauticalDusk", "night"), tz = "UTC")
     aux2 <- getSunlightTimes(date = as.Date(data$Time.ret[i]), lon = data$Lon[i], lat = data$Lat[i],
-                             keep = c("dawn", "sunrise", "sunset", "dusk", "night"), tz = "UTC")
+                             keep = c("nauticalDawn", "sunrise", "sunset", "nauticalDusk", "night"), tz = "UTC")
 
     aux.time <- as.numeric(difftime(time1 = data$Time.ret[i], time2 = data$Time.set[i], units = "hours"))
 
     ## Circadian period
-    if(data$Time.set[i] < aux1$dawn){
+    if(data$Time.set[i] < aux1$nauticalDawn){
       aux.set <- "Pre-dawn"
     }  
-    if(data$Time.ret[i] < aux2$dawn){
+    if(data$Time.ret[i] < aux2$nauticalDawn){
       aux.catch <- "Pre-dawn"
     }
-    if(data$Time.set[i] >= aux1$dawn & data$Time.set[i] < aux1$sunrise){
+    if(data$Time.set[i] >= aux1$nauticalDawn & data$Time.set[i] < aux1$sunrise){
       aux.set <- "Dawn"
     }
-    if(data$Time.ret[i] >= aux2$dawn & data$Time.ret[i] < aux2$sunrise){
+    if(data$Time.ret[i] >= aux2$nauticalDawn & data$Time.ret[i] < aux2$sunrise){
       aux.catch <- "Dawn"
     }  
     if(data$Time.set[i] >= aux1$sunrise & data$Time.set[i] < aux1$sunset){
@@ -80,10 +56,10 @@ MoonVar <- function (data) {
     if(data$Time.ret[i] >= aux2$sunrise & data$Time.ret[i] < aux2$sunset){
       aux.catch <- "Day"
     }
-    if(data$Time.set[i] >= aux1$sunset & data$Time.set[i] < aux1$night){
+    if(data$Time.set[i] >= aux1$sunset & data$Time.set[i] < aux1$nauticalDusk){
       aux.set <- "Dusk"
     }
-    if(data$Time.ret[i] >= aux2$sunset & data$Time.ret[i] < aux2$night){
+    if(data$Time.ret[i] >= aux2$sunset & data$Time.ret[i] < aux2$nauticalDusk){
       aux.catch <- "Dusk"
     }
     if(data$Time.set[i] >= aux1$night){
@@ -103,45 +79,175 @@ MoonVar <- function (data) {
   close(pb)
   df.aux <- data.frame(Set = Circadian.set, Ret = Circadian.ret, Hour = Time.lapse, Time = Time.gear)
   # Sets only during daytime
-  index1 <- which(df.aux$Time == "Same" & df.aux$Set != "Pre-dawn" & df.aux$Ret != "After-dusk")
+  index1 <- which(df.aux$Time == "Same" & df.aux$Set == "Dawn" & df.aux$Ret == "Dawn")
+  index2 <- which(df.aux$Time == "Same" & df.aux$Set == "Dawn" & df.aux$Ret == "Day")
+  index3 <- which(df.aux$Time == "Same" & df.aux$Set == "Dawn" & df.aux$Ret == "Dusk")
+  index4 <- which(df.aux$Time == "Same" & df.aux$Set == "Day" & df.aux$Ret == "Day")
+  index5 <- which(df.aux$Time == "Same" & df.aux$Set == "Day" & df.aux$Ret == "Dusk")
+  index6 <- which(df.aux$Time == "Same" & df.aux$Set == "Dusk" & df.aux$Ret == "Dusk")
+   
+  index1 <- sort(c(index1, index2, index3, index4, index5, index6))
+  rm(index2, index3, index4, index5, index6)
   cat(paste0("M: A total of ", length(index1), " sets were deployed exclusively during day light and will be removed."), fill = 1)
   # Sets longer than a day
   index2 <- which(df.aux$Hour > 24 & df.aux$Time == "Different") 
-  cat(paste0("M: A total of ", length(index2), " sets were longer than 24-h and will be also removed."), fill = 1)
+  index3 <- which(df.aux$Time == "Same" & df.aux$Set == "Pre-dawn" & df.aux$Ret == "After-dusk")
+  index2 <- sort(c(index2, index3))
+  cat(paste0("M: A total of ", length(index2), " sets encompass multiple nights and will be also removed."), fill = 1)
   
   # Save output and remove sets:
-  index <- sort(c(index1, index2)) 
+  index <- sort(c(index1, index2))
+  rm(index1, index2) 
   data$Circadian.set <- Circadian.set
   data$Circadian.set <- factor(data$Circadian.set, levels = c("Pre-dawn", "Dawn", "Day", "Dusk", "After-dusk"))
   data$Circadian.ret <- Circadian.ret
   data$Circadian.ret <- factor(data$Circadian.ret, levels = c("Pre-dawn", "Dawn", "Day", "Dusk", "After-dusk"))
   data$Soak.time <- Time.lapse
   data <- data[-index, ]
+  df.aux <- df.aux[-index, ]
+
+
+  #-------------------------------------------------------#
+  # Identify periods of true night-time during deployment #
+  #-------------------------------------------------------#
+  data$Night.start <- data$Time.set
+  data$Night.end <- data$Time.ret
+
+  cat("Identifying moments of true night-time", fill = 1)
+  pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
+  for (i in 1:nrow(data)) {
+
+    sun.pos <- getSunlightPosition(date = as.Date(data$Time.set[i]), lon = data$Lon[i], lat = data$Lat[i], keep = "altitude")
+    aux1 <- getSunlightTimes(date = as.Date(data$Time.set[i]), lon = data$Lon[i], lat = data$Lat[i],
+                             keep = c("dawn", "sunrise", "sunset", "dusk", "night"), tz = "UTC")
+    aux2 <- getSunlightTimes(date = as.Date(data$Time.ret[i]), lon = data$Lon[i], lat = data$Lat[i],
+                             keep = c("dawn", "sunrise", "sunset", "dusk", "night"), tz = "UTC")
+
+    if (df.aux$Time[i] == "Same") {
+      if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Pre-dawn") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Dawn") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux1$nauticalDawn
+      }
+      if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Day") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux1$nauticalDawn
+      }
+      if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Dusk") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux1$nauticalDawn
+      }
+
+      if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "After-dusk") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "After-dusk") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "After-dusk") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }      
+      if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "After-dusk") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }      
+    } 
+
+    if (df.aux$Time[i] == "Different") {
+      if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "Pre-dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "Dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+
+      if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Pre-dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+      if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Day") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+
+      if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Pre-dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Dawn") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+      if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Day") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+      if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Dusk") {
+        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+
+      if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Pre-dawn") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- data$Time.ret[i]
+      }
+      if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Dawn") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+      if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Day") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+      if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Dusk") {
+        data$Night.start[i] <- data$Time.set[i]
+        data$Night.end[i] <- aux2$nauticalDawn
+      }
+    }
+  setTxtProgressBar(pb, i)
+  }
+  close(pb)
 
 
   #======================================================================#
   # Find periods of maximum moon angle in the sky during gear deployment #
   #======================================================================#
-  data$Angle <- NA
   data$Max.moon.time <- data$Time.ret
+  data$Angle <- NA
 
   cat("Identifying times of maximum moon angle during fishing sets", fill = 1)
   pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
   for (i in 1:nrow(data)) {
 
-    aux <- seq(data$Time.set[i], data$Time.ret[i], by = 1800) # Time interval every 30 min!
-    aux <- c(aux, data$Time.ret[i]) # Include retrieval/catch time!
-
+    aux.temp <- as.numeric(difftime(data$Night.end[i], data$Night.start[i], units = "mins"))
+    if (aux.temp < 30) {
+      aux <- c(data$Night.start[i], data$Night.end[i]) # If lower than 30 min, use only night-time and retrieval angles!
+    } else {
+      aux <- seq(data$Night.start[i], data$Night.end[i], by = 1800) # Time interval every 30 min
+      aux <- c(aux, data$Time.ret[i]) # Include retrieval/catch time!
+    }
+    
     angle.save <- NULL
-
     for(ii in 1:length(aux)) {
       aux1 <- getMoonPosition(date = aux[ii], lon = data$Lon[i], lat = data$Lat[i])
-      aux1 <- aux1$altitude # * 57.2958 # From radians to degrees
+      aux1 <- aux1$altitude * 57.2958 # From radians to degrees
       angle.save <- c(angle.save, aux1)
     }
 
     aux2 <- max(angle.save, na.rm = TRUE)
-    if (aux2 < 0) { # Moon only bellow the horizon!
+    if (aux2 < 0) { # Moon bellow the horizon!
       aux2 <- 0
     }
 
@@ -152,13 +258,12 @@ MoonVar <- function (data) {
   close(pb)
 
 
-  #==========================#
+  #--------------------------#
   # Obtaining moon variables #
-  #==========================#
-  data$Illumin <- NA
+  #--------------------------#
+  data$Illumination <- NA
   data$Phase <- NA 
   data$Distance <- NA
-  data$Moon.set.time <- data$Max.moon.time
   data$Parallatic <- NA
   data$Azimuth <- NA
 
@@ -169,7 +274,6 @@ MoonVar <- function (data) {
     # Get data
     aux1 <- getMoonIllumination(date = data$Max.moon.time[i])
     aux2 <- getMoonPosition(date = data$Max.moon.time[i], lon = data$Lon[i], lat = data$Lat[i])
-
     aux3 <- getMoonTimes(date = as.Date(data$Max.moon.time[i]) - 1, lon = data$Lon[i], lat = data$Lat[i])
     aux4 <- getMoonTimes(date = as.Date(data$Max.moon.time[i]), lon = data$Lon[i], lat = data$Lat[i])
     aux5 <- getMoonTimes(date = as.Date(data$Max.moon.time[i]) + 1, lon = data$Lon[i], lat = data$Lat[i])
@@ -181,84 +285,72 @@ MoonVar <- function (data) {
     aux.time$Time.abs <- aux.time$Time
     aux.time$Time.abs[aux.time$Time.abs < 0] <- aux.time$Time.abs[aux.time$Time.abs < 0] * -1
 
-    data$Illumin[i] <- aux1$fraction
+    # Get proportion of lunar illumination 
+    aux.shift <- as.numeric(substr(data$Max.moon.time, 12, 13))
+    if (aux.shift > 12) {
+      aux.shift <- aux.shift - 12
+    }
+    aux <- as.numeric(substr(data$Max.moon.time, 15, 16)) / 60
+    aux.shift <- aux.shift + aux
+
+    # Save data:
+    data$Illumination[i] <- aux1$fraction
     data$Phase[i] <- aux1$phase
     data$Distance[i] <- aux2$distance
-    data$Moon.set.time[i] <- aux.time$set[which(aux.time$Time.abs == min(aux.time$Time.abs))]
-    data$Parallatic[i] <- aux2$parallacticAngle
-    data$Azimuth[i] <- aux2$azimuth
+    data$Parallatic[i] <- aux2$parallacticAngle * 57.2958 # From radians to degrees
+    data$Azimuth[i] <- aux2$azimuth * 57.2958 # From radians to degrees
+    
+    setTxtProgressBar(pb, i)
+  }
+  close(pb)
+  
+  #-------------------------#
+  # Create diagnostic plots #
+  #-------------------------#
+  plot1 <- ggplot() + theme_bw() +
+    geom_histogram(data = data, aes(x = Soak.time), binwidth = 2, position="identity", fill = "midnightblue") +
+    geom_vline(xintercept = mean(data$Soak.time), linetype = "dashed", size = 1, colour = "white") + 
+    labs(x = "Soak time (hours)", y = "Frequency", title = paste0("mean = ", substr(mean(data$Soak.time), 1, 5), " h")) +
+    scale_x_discrete(limits = seq(0, 24, 4))
+
+  plot2 <- ggplot() + theme_bw() +
+    geom_histogram(data = data, aes(x = Angle), binwidth = 5, position="identity", fill = "midnightblue") +
+    geom_vline(xintercept = mean(data$Angle), linetype = "dashed", size = 1, colour = "white") + 
+    labs(x = "Maximum moon angle (°)", y = "Frequency", title = paste0("mean = ", substr(mean(data$Angle), 1, 5), "°"))
+    
+  plot.diag <- ggarrange(plot1, plot2, ncol = 2)
+      
+  # Save outputs
+  output <- list(data = data, bad_set.index = index, plot.diag = plot.diag)
+  return(output)
+}
+
+
+MoonCalc <- function(x, y, z) {
+  (x * sin(y * 0.0174532925)) * 1 * ((1 - z) / 1)
+}
+
+
+MoonIndex <- function(data, angle) {
+
+  data$MoonIndex <- NA
+
+  cat("Calculating weighted moonlight index", fill = 1)
+  pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
+  for (i in 1:nrow(data)) {
+
+    if (data$Angle[i] == 0 |
+      data$Angle[i] < angle) {
+      data$MoonIndex[i] <- 0
+    } else {
+
+      data$MoonIndex[i] <- MoonCalc(x = data$Illumination[i], y = data$Angle[i], z = data$Cloud[i])
+    }
 
     setTxtProgressBar(pb, i)
   }
   close(pb)
 
-
-  #==========================#
-  # Generate diagnostic plot #
-  #==========================#
-  cat("M: Saving diagnostic plot.", fill = 1)
-
-  # Set durations:
-  plot1 <- ggplot(data = data, aes(x = Soak.time)) + theme_bw() + labs(x = "Soak time (hours)", y = "Density") +
-    geom_histogram(aes(y=..density..), fill = "dodgerblue", binwidth = 1, na.rm = TRUE) + 
-    geom_density(na.rm = TRUE) + xlim(c(0, 23)) +
-    geom_vline(xintercept = mean(df.moon$Soak.time), linetype = "dashed", size = 1)
-
-  # Time difference between maximum angle to retrieval:
-  data$Time.max.ret.h <- as.numeric(difftime(data$Time.ret, data$Max.moon.time, units = "hours"))
-  plot2 <- ggplot(data = data, aes(x = Time.max.ret.h)) + theme_bw() + labs(x = "Time between maximum angle and retrieval (hours)", y = "") +
-    geom_histogram(aes(y=..density..), fill = "dodgerblue", binwidth = 1, na.rm = TRUE) + 
-    geom_density(na.rm = TRUE) +
-    geom_vline(xintercept = mean(data$Time.max.ret.h), linetype = "dashed", size = 1) 
-
-  # Maximum moon angles during set:
-  plot3 <- ggplot(data = data, aes(x = Angle)) + theme_bw() + labs(x = "Maximum moon angle during set (rad)", y = "") +
-    geom_histogram(aes(y=..density..), fill = "dodgerblue", binwidth = 0.1, na.rm = TRUE) + 
-    geom_density(na.rm = TRUE) +
-    geom_vline(xintercept = mean(data$Angle), linetype = "dashed", size = 1) 
-
-  ### Save output 
-  plot.save <- ggarrange(plot1, plot2, plot3, ncol = 3, nrow = 1)
-  output <- list(data = data, set.index = index, diagnostic = plot.save)
-  return(output)
+  return(data)
 }
-
- 
-
-
-###################################################
-# Testing the code!
-moon.data <- MoonVar(data)  
-df.moon <- moon.data[[1]]
-summary(df.moon)
-moon.data$diagnostic
-
-kable(head(moon.data$data), format = "markdown")
-
-ggsave("diagnostic.png", width = 12, height = 3)
-
-
-### Generate histograms of variables distribution:
-library(ggplot2)
-library(ggpubr)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
