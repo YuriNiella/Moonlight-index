@@ -1,4 +1,4 @@
-# Moonlight index <img src="vignettes/RSP_logo.png" align="right" width="120" />
+# Moonlight index <img src="" align="right" width="120" />
 **Calculating a fine-scale moon luminosity variable for species occurrence data**
 <br/><br/>
 
@@ -10,15 +10,16 @@ Fishing sets during exclusively daytime (including **dawn** and **dusk** periods
 
 These variables can be then used to calculate the **fine-scale moonlight index** during gear deployment. This approach takes into account the ladscape properties, in which for the moon light to have any expected effect, it's maximum angle in the sky during a fishing set has to enable it to transpass the height of the nearest mountain:
 
-<img src="README/Image1.png" width="500"  />
-**A.** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B.** The maximum angle of the moon allows it to illuminate the westward part of the island.
+<img src="README/Image1.png" width="900"  />
+**A** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B** The maximum angle of the moon allows it to illuminate the westward part of the island.
+<br/>
 
 Not only the moon has to be **high enough** in the sky during a fishing set, but also the amount of **cloud cover** will influence the total moon light that reaches the surface of the water. Therefore, **daily average cloud cover (%)** data is necessary for calculating the moonlight index. 
 <br/><br/>
 
 ## 2. Installing required packages and toolkit functions
 
-First download the `Moonlight_index.R` file into your working directory. You are going to need the packages **suncalc** and **lunar** to download the moon variables, and the packages **ggplot2** and **ggarrange** to generate the diagnostic plots. If you don't have these installed you can do so by running:
+First download the `Moonlight_index.Rdata` file into your working directory. You are going to need the packages **suncalc** and **lunar** to download the moon variables, and the packages **ggplot2** and **ggarrange** to generate the diagnostic plots. If you don't have these installed you can do so by running:
 
 ```
 install.packages(suncalc)
@@ -107,7 +108,7 @@ The output of this function is a list containing the three following objects:
 moon.data$plot.diag
 ```
 
-<img src="README/Image2.png" width="300"  />
+<img src="README/Image2.png" width="900"  />
 <br/><br/>
 
 
@@ -115,13 +116,13 @@ moon.data$plot.diag
 
 Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
 
-<img src="README/Image3.png" width="100"  />
+<img src="README/Image3.png" width="300"  />
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
 After calculating this angle, the moonlight index can be calculated using the function `MoonIndex()` by simply providing the output of `MoonVar()` and the alpha angle, using the following equation:
 
-<img src="README/Image4.png" width="100"  />
+<img src="README/Image4.png" width="250"  />
 
 In which **x** represents the moon illumination at the time of maximum angle, **beta** is the maximum angle of the moon in the sky during gear deployment, and **z** is the percentage of daily cloud cover. For those sets in which beta was lower than alpha (i.e. maximum angle in the sky not able to overcome the highest mountain), the moonlight index is automatically set to zero.
 
