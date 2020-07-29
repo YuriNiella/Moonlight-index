@@ -11,10 +11,11 @@ Fishing sets during exclusively daytime (including **dawn** and **dusk** periods
 These variables can be then used to calculate the **fine-scale moonlight index** during gear deployment. This approach takes into account the ladscape properties, in which for the moon light to have any expected effect, it's maximum angle in the sky during a fishing set has to enable it to transpass the height of the nearest mountain:
 
 <img src="README/Image1.png" width="900"  />
+
 **A** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B** The maximum angle of the moon allows it to illuminate the westward part of the island.
 <br/>
 
-Not only the moon has to be **high enough** in the sky during a fishing set, but also the amount of **cloud cover** will influence the total moon light that reaches the surface of the water. Therefore, **daily average cloud cover (%)** data is necessary for calculating the moonlight index. 
+Not only the moon has to be **high enough** in the sky during a fishing set, but also the amount of **cloud cover** will influence the total moon light that reaches the surface of the water. Therefore, **daily average cloud cover (%)** data is also necessary for calculating the moonlight index. 
 <br/><br/>
 
 ## 2. Installing required packages and toolkit functions
@@ -39,16 +40,16 @@ Now just you just need to use `load("Moonlight_index.Rdata")` to load the toolki
 
 The `MoonVar()` function can be used for obtaining the following moon variables:
 
-(1) Max.moon.time = time of maximum angle of the moon in the sky during fishing gear deployment
-(2) Angle = maximum angle (°) of the moon in relation to the horizon during fishing gear deployment
-(3) Illumination = fraction of the moon illuminated by the sun at the time of maximum angle (0 = new moon, 1 = full moon)
-(4) Phase = the moon phase (0 = new moon, 0.25 = first quarter, 0.5 = full moon, 0.75 = last quarter)
-(5) Distance = distance (km) from the earth to the moon
-(6) Parallatic and Azimuth angles (°)
+1. Max.moon.time = time of maximum angle of the moon in the sky during fishing gear deployment
+2. Angle = maximum angle (°) of the moon in relation to the horizon during fishing gear deployment
+3. Illumination = fraction of the moon illuminated by the sun at the time of maximum angle (0 = new moon, 1 = full moon)
+4. Phase = the moon phase (0 = new moon, 0.25 = first quarter, 0.5 = full moon, 0.75 = last quarter)
+5. Distance = distance (km) from the earth to the moon
+6. Parallatic and Azimuth angles (°)
  
-The input data to `MoonVar()` is a dataframe (e.g. `data`) in which each row represents one fishing set, and include the locations of gear deployment (**Lon** and **Lat** in decimal degrees), the respective times of set (Time.set) and retrieval (Time.ret) in **UTC**, and the **percentage of cloud coverage** (Cloud):
+The input data to `MoonVar()` is a dataframe (e.g. `df`) in which each row represents one fishing set, and include the locations of gear deployment (**Lon** and **Lat** in decimal degrees), the respective times of set (Time.set) and retrieval (Time.ret) in **UTC**, and the **percentage of cloud coverage** (Cloud):
 
-`head(data)`
+`head(df)`
 
 |    Lon|     Lat|            Time.set|            Time.ret| Cloud|
 |:------|-------:|-------------------:|-------------------:|-----:|
@@ -62,7 +63,7 @@ The input data to `MoonVar()` is a dataframe (e.g. `data`) in which each row rep
 You can then simply download the moon variables using `MoonVar(data)`:
 
 ```
-> moon.data <- MoonVar(data)
+> moon.data <- MoonVar(df)
 Identifying sets during exclusively daytime periods
   |============================================================| 100%
 M: A total of 2191 sets were deployed exclusively during day light and will be removed.
