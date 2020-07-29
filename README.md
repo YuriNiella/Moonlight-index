@@ -1,8 +1,6 @@
----
-title: Moonlight index 
-subtitle: Calculating a fine-scale moon luminosity variable for species occurrence data 
----
-<br/>
+# Moonlight index <img src="vignettes/RSP_logo.png" align="right" width="120" />
+**Calculating a fine-scale moon luminosity variable for species occurrence data**
+<br/><br/>
 
 ## 1. Overview
 
@@ -12,7 +10,8 @@ Fishing sets during exclusively daytime (including **dawn** and **dusk** periods
 
 These variables can be then used to calculate the **fine-scale moonlight index** during gear deployment. This approach takes into account the ladscape properties, in which for the moon light to have any expected effect, it's maximum angle in the sky during a fishing set has to enable it to transpass the height of the nearest mountain:
 
-![**A.** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B.** The maximum angle of the moon allows it to illuminate the westward part of the island.](README/Image1.png){#id .class width=110% height=110%} 
+<img src="README/Image1.png" width="500"  />
+**A.** The maximum angle of the moon is not enough to illuminate the westward part of the island; **B.** The maximum angle of the moon allows it to illuminate the westward part of the island.
 
 Not only the moon has to be **high enough** in the sky during a fishing set, but also the amount of **cloud cover** will influence the total moon light that reaches the surface of the water. Therefore, **daily average cloud cover (%)** data is necessary for calculating the moonlight index. 
 <br/><br/>
@@ -107,7 +106,8 @@ The output of this function is a list containing the three following objects:
 ```
 moon.data$plot.diag
 ```
-![](README/Image2.png){#id .class width=80% height=80%} 
+
+<img src="README/Image2.png" width="300"  />
 <br/><br/>
 
 
@@ -115,13 +115,13 @@ moon.data$plot.diag
 
 Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
 
-![](README/Image3.png){#id .class width=18% height=18%} 
+<img src="README/Image3.png" width="100"  />
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
 After calculating this angle, the moonlight index can be calculated using the function `MoonIndex()` by simply providing the output of `MoonVar()` and the alpha angle, using the following equation:
 
-![](README/Image4.png){#id .class width=30% height=30%} 
+<img src="README/Image4.png" width="100"  />
 
 In which **x** represents the moon illumination at the time of maximum angle, **beta** is the maximum angle of the moon in the sky during gear deployment, and **z** is the percentage of daily cloud cover. For those sets in which beta was lower than alpha (i.e. maximum angle in the sky not able to overcome the highest mountain), the moonlight index is automatically set to zero.
 
