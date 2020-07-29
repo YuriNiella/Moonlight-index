@@ -120,17 +120,17 @@ Before we can calculate the moonlight indexes, we first need to obtain the angle
 
 In which **altitude** is the height of the nearest point and **Y** is its straight-line distance to the study area. 
 
-After calculating this angle, the moonlight index can be calculated using the function `MoonIndex()` by simply providing the output of `MoonVar()` and the alpha angle, using the following equation:
+After calculating this constant angle (alpha), the moonlight index can be calculated using the function `MoonIndex()` by simply providing the output from `MoonVar()` and alpha, which automatically uses the following equation:
 
 <img src="README/Image4.png" width="330"  />
 
-In which **x** represents the moon illumination at the time of maximum angle, **beta** is the maximum angle of the moon in the sky during gear deployment, and **z** is the percentage of daily cloud cover. For those sets in which beta was lower than alpha (i.e. maximum angle in the sky not able to overcome the highest mountain), the moonlight index is automatically set to zero.
+In which **x** represents the moon illumination at the time of maximum angle, **beta** is the maximum angle of the moon in the sky during gear deployment, and **z** is the percentage of daily cloud cover. For those sets in which beta was lower than alpha (i.e. maximum angle in the sky not able to overcome the highest mountain), the moonlight index will be automatically set to zero.
 
 ```
 df.moon.index <- MoonIndex(data = df.moon, angle = 8.31) # Using a 8.31° angle!
 ```
 
-The output of the function similar to the input dataset (df.moon), but including the **MoonIndex** column including the calculated data:
+The output of the function similar to the input dataset (df.moon), but includes the **MoonIndex** column containing the calculated data:
 
 |      Max.moon.time|  Angle| Illumination|  Phase| Distance| Parallatic|  Azimuth|  MoonIndex|
 |:------------------|------:|------------:|------:|--------:|----------:|--------:|----------:|
