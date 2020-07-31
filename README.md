@@ -4,11 +4,11 @@
 
 ## 1. Overview
 
-The moon influences the movement patterns of marine animals and, therefore, fishing activity in a variety of ways. It's major effects are upon **tide levels** and **environmental light** during night-time periods. Here we provide a standardized way for fishery researchers to obtain different moon measurements in fine-scale for statistical analysis of catch-and-effort data. 
+The moon influences the movement patterns of marine animals and, therefore, fishing activity in a variety of ways. Its major effects are upon **tide levels** and **environmental light** during night-time periods. Here we provide a standardized way for fishery researchers to obtain different moon measurements in fine-scale for statistical analysis of catch-and-effort data. 
 
 Fishing sets during exclusively daytime (including **dawn** and **dusk** periods) are automatically identified, and only sets that fished during trully night-time periods (**pre-dawn** or **after-dusk**) for some time are considered for analysis. 
 
-These variables can be then used to calculate the **fine-scale moonlight index** during gear deployment. This approach takes into account the ladscape properties, in which for the moon light to have any expected effect, it's maximum angle in the sky during a fishing set has to enable it to transpass the height of the nearest mountain:
+These variables can be then used to calculate the **fine-scale moonlight index** during gear deployment. This approach takes into account the ladscape properties, in which for the moon light to have any expected effect, its maximum angle in the sky during a fishing set has to enable it to transpass the height of the nearest mountain:
 
 <img src="README/Image1.png" width="900"  />
 
@@ -20,7 +20,7 @@ Not only the moon has to be **high enough** in the sky during a fishing set, but
 
 ## 2. Installing required packages and toolkit functions
 
-First download the `Moonlight_index.Rdata` file into your working directory. You are going to need the packages **suncalc** and **lunar** to download the moon variables, and the packages **ggplot2** and **ggarrange** to generate the diagnostic plots. If you don't have these installed you can do so by running:
+First download the `Moonlight_index.Rdata` file into your working directory. You are going to need the packages **suncalc** and **lunar** to download the moon variables, and the packages **ggplot2** and **ggarrange** to generate the diagnostic plots. If you do not have these installed you can do so by running:
 
 ```
 install.packages(suncalc)
@@ -114,7 +114,7 @@ moon.data$plot.diag
 
 ## 4. Calculating the fine-scale moonlight index
 
-Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (REF), but briefly this angle can be obtained according to the following equation:
+Before we can calculate the moonlight indexes, we first need to obtain the angle (alpha) that the moon has to overcome in relation to the horizon so that it can influence the study area (e.g. so that the moon becomes higher in the sky than the nearest mountain). Detailed descriptions of the method can be found in Niella et al. 2020 (under review), but briefly this angle can be obtained according to the following equation:
 
 <img src="README/Image3.png" width="210"  />
 
