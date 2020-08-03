@@ -1,5 +1,8 @@
 # Moonlight index
 ### Calculating a fine-scale moon luminosity variable for species occurrence data
+
+<a href="https://zenodo.org/badge/latestdoi/224124336"><img src="https://zenodo.org/badge/224124336.svg" alt="DOI"></a>
+
 <br/>
 
 ## 1. Overview
