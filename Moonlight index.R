@@ -1,6 +1,15 @@
 MoonVar <- function (data) {
 
   # Quality checks
+  data$Time.set <- as.POSIXct(data$Time.set, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  data$Time.ret <- as.POSIXct(data$Time.ret, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+
+  if (is.na(data$Time.set[1]) == TRUE) {
+    stop("Time.set column must be in %Y-%m-%d %H:%M:%S (UTC) format.")    
+  }
+  if (is.na(data$Time.ret[1]) == TRUE) {
+    stop("Time.ret column must be in %Y-%m-%d %H:%M:%S (UTC) format.")    
+  }
   if (length(data$Time.set) != length(data$Time.ret)) {
     stop("Set and retrieval/catch date vectors should have the same length.")    
   }
@@ -77,6 +86,7 @@ MoonVar <- function (data) {
     setTxtProgressBar(pb, i)    
   }
   close(pb)
+
   df.aux <- data.frame(Set = Circadian.set, Ret = Circadian.ret, Hour = Time.lapse, Time = Time.gear)
   # Sets only during daytime
   index1 <- which(df.aux$Time == "Same" & df.aux$Set == "Dawn" & df.aux$Ret == "Dawn")
@@ -96,16 +106,19 @@ MoonVar <- function (data) {
   cat(paste0("M: A total of ", length(index2), " sets encompass multiple nights and will be also removed."), fill = 1)
   
   # Save output and remove sets:
-  index <- sort(c(index1, index2))
-  rm(index1, index2) 
   data$Circadian.set <- Circadian.set
   data$Circadian.set <- factor(data$Circadian.set, levels = c("Pre-dawn", "Dawn", "Day", "Dusk", "After-dusk"))
   data$Circadian.ret <- Circadian.ret
   data$Circadian.ret <- factor(data$Circadian.ret, levels = c("Pre-dawn", "Dawn", "Day", "Dusk", "After-dusk"))
   data$Soak.time <- Time.lapse
-  data <- data[-index, ]
-  df.aux <- df.aux[-index, ]
-
+  
+  index <- sort(c(index1, index2))
+  rm(index1, index2) 
+  if (length(index) > 0) {
+    data <- data[-index, ]
+    df.aux <- df.aux[-index, ]
+  }
+  
 
   #-------------------------------------------------------#
   # Identify periods of true night-time during deployment #
@@ -130,73 +143,73 @@ MoonVar <- function (data) {
       }
       if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Dawn") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux1$nauticalDawn
+        data$Night.end[i] <- as.character(aux1$dawn)
       }
       if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Day") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux1$nauticalDawn
+        data$Night.end[i] <- as.character(aux1$dawn)
       }
       if (df.aux$Set[i] == "Pre-dawn" & df.aux$Ret[i] == "Dusk") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux1$nauticalDawn
+        data$Night.end[i] <- as.character(aux1$dawn)
       }
 
       if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "After-dusk") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }
       if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "After-dusk") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }
       if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "After-dusk") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }      
       if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "After-dusk") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }      
     } 
 
     if (df.aux$Time[i] == "Different") {
       if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "Pre-dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }
       if (df.aux$Set[i] == "Dawn" & df.aux$Ret[i] == "Dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- aux2$dawn
       }
 
       if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Pre-dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }
       if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- aux2$dawn
       }
       if (df.aux$Set[i] == "Day" & df.aux$Ret[i] == "Day") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- aux2$dawn
       }
 
       if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Pre-dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
+        data$Night.start[i] <- as.character(aux1$dusk)
         data$Night.end[i] <- data$Time.ret[i]
       }
       if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Dawn") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
       if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Day") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
       if (df.aux$Set[i] == "Dusk" & df.aux$Ret[i] == "Dusk") {
-        data$Night.start[i] <- aux1$nauticalDusk
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.start[i] <- as.character(aux1$dusk)
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
 
       if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Pre-dawn") {
@@ -205,19 +218,21 @@ MoonVar <- function (data) {
       }
       if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Dawn") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
       if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Day") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
       if (df.aux$Set[i] == "After-dusk" & df.aux$Ret[i] == "Dusk") {
         data$Night.start[i] <- data$Time.set[i]
-        data$Night.end[i] <- aux2$nauticalDawn
+        data$Night.end[i] <- as.character(aux2$dawn)
       }
     }
   setTxtProgressBar(pb, i)
   }
+  data$Night.start <- as.POSIXct(data$Night.start, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
+  data$Night.end <- as.POSIXct(data$Night.end, format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
   close(pb)
 
 
@@ -230,8 +245,8 @@ MoonVar <- function (data) {
   cat("Identifying times of maximum moon angle during fishing sets", fill = 1)
   pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
   for (i in 1:nrow(data)) {
-
     aux.temp <- as.numeric(difftime(data$Night.end[i], data$Night.start[i], units = "mins"))
+    
     if (aux.temp < 30) {
       aux <- c(data$Night.start[i], data$Night.end[i]) # If lower than 30 min, use only night-time and retrieval angles!
     } else {
