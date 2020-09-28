@@ -29,11 +29,11 @@ First download the `Moonlight_index.Rdata` file into your working directory. You
 install.packages(suncalc)
 install.packages(lunar)
 install.packages(ggplot2)
-install.packages(ggarrange)
+install.packages(ggpubr)
 library(suncalc)
 library(lunar)
 library(ggplot2)
-library(ggarrange)
+library(ggpubr)
 ```
 
 Now just you just need to use `load("Moonlight_index.Rdata")` to load the toolkit functions into your global environment and you are all set to go! 
