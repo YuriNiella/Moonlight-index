@@ -26,11 +26,11 @@ Not only the moon has to be **high enough** in the sky during a fishing set, but
 First download the `Moonlight_index.Rdata` file into your working directory. You are going to need the packages **suncalc** and **lunar** to download the moon variables, and the packages **ggplot2** and **ggarrange** to generate the diagnostic plots. If you do not have these installed you can do so by running:
 
 ```
-install.packages(suncalc)
-install.packages(lunar)
-install.packages(lubridate)
-install.packages(ggplot2)
-install.packages(ggpubr)
+install.packages("suncalc")
+install.packages("lunar")
+install_github("tidyverse/lubridate") # Cran version has a bug for timezones!
+install.packages("ggplot2")
+install.packages("ggpubr")
 library(suncalc)
 library(lunar)
 library(lubridate)
