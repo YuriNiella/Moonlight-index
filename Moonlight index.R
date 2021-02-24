@@ -287,6 +287,9 @@ MoonVar <- function (data) {
   for (i in 1:nrow(data)) {
 
     # Get data
+    if (data$Max.moon.time[i] > data$Time.ret[i])
+      data$Max.moon.time[i] <- data$Time.ret[i]
+    
     aux1 <- getMoonIllumination(date = data$Max.moon.time[i])
     aux2 <- getMoonPosition(date = data$Max.moon.time[i], lon = data$Lon[i], lat = data$Lat[i])
     aux3 <- getMoonTimes(date = as.Date(data$Max.moon.time[i]) - 1, lon = data$Lon[i], lat = data$Lat[i])
@@ -299,14 +302,6 @@ MoonVar <- function (data) {
     }
     aux.time$Time.abs <- aux.time$Time
     aux.time$Time.abs[aux.time$Time.abs < 0] <- aux.time$Time.abs[aux.time$Time.abs < 0] * -1
-
-    # Get proportion of lunar illumination 
-    aux.shift <- as.numeric(substr(data$Max.moon.time, 12, 13))
-    if (aux.shift > 12) {
-      aux.shift <- aux.shift - 12
-    }
-    aux <- as.numeric(substr(data$Max.moon.time, 15, 16)) / 60
-    aux.shift <- aux.shift + aux
 
     # Save data:
     data$Illumination[i] <- aux1$fraction
@@ -323,14 +318,13 @@ MoonVar <- function (data) {
   # Create diagnostic plots #
   #-------------------------#
   plot1 <- ggplot() + theme_bw() +
-    geom_histogram(data = data, aes(x = Soak.time), binwidth = 2, position="identity", fill = "midnightblue") +
-    geom_vline(xintercept = mean(data$Soak.time), linetype = "dashed", size = 1, colour = "white") + 
-    labs(x = "Soak time (hours)", y = "Frequency", title = paste0("mean = ", substr(mean(data$Soak.time), 1, 5), " h")) +
-    scale_x_discrete(limits = seq(0, 24, 4))
+    geom_histogram(data = data, aes(x = Soak.time), binwidth = 1, position="identity", fill = "midnightblue") +
+    geom_vline(xintercept = mean(data$Soak.time), linetype = "dashed", size = 1, colour = "gray70") + 
+    labs(x = "Soak time (hours)", y = "Frequency", title = paste0("mean = ", substr(mean(data$Soak.time), 1, 5), " h"))
 
   plot2 <- ggplot() + theme_bw() +
     geom_histogram(data = data, aes(x = Angle), binwidth = 5, position="identity", fill = "midnightblue") +
-    geom_vline(xintercept = mean(data$Angle), linetype = "dashed", size = 1, colour = "white") + 
+    geom_vline(xintercept = mean(data$Angle), linetype = "dashed", size = 1, colour = "gray70") + 
     labs(x = "Maximum moon angle (°)", y = "Frequency", title = paste0("mean = ", substr(mean(data$Angle), 1, 5), "°"))
     
   plot.diag <- ggarrange(plot1, plot2, ncol = 2)

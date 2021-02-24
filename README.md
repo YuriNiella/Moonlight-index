@@ -28,10 +28,12 @@ First download the `Moonlight_index.Rdata` file into your working directory. You
 ```
 install.packages(suncalc)
 install.packages(lunar)
+install.packages(lubridate)
 install.packages(ggplot2)
 install.packages(ggpubr)
 library(suncalc)
 library(lunar)
+library(lubridate)
 library(ggplot2)
 library(ggpubr)
 ```
