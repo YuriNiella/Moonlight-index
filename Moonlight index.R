@@ -363,3 +363,38 @@ MoonIndex <- function(data, angle) {
   return(data)
 }
 
+
+MoonRise <- function(data, angle, tz) {
+
+  data$MoonRise <- NA
+  moon.times <- NULL
+
+  cat("Obtaining approximated times of moon rise", fill = 1)
+  pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
+  for (i in 1:nrow(data)) {
+    aux1 <- data$Time.set[i]
+    aux2 <- data$Time.ret[i]
+    aux.times <- seq(aux1, aux2, by = 30 * 60)
+    moon.angles <- NULL
+
+    for (ii in 1:length(aux.times)) {
+      aux.moon <- getMoonPosition(date = aux.times[ii], lat = data$Lat[1], lon = data$Lon[1], keep = "altitude")
+      moon.angles <- c(moon.angles, aux.moon$altitude * 57.2958)
+    }
+
+    moon.aux <- data.frame(Time = aux.times, Angle = moon.angles)
+    moon.time <- moon.aux$Time[which(moon.aux$Angle >= angle)[1]]
+    attributes(moon.time)$tzone <- tz # Convert to local time!
+
+    data$MoonRise[i] <- as.character(moon.time)
+    setTxtProgressBar(pb, i)
+  }
+  close(pb)
+
+  data$MoonRise[which(nchar(data$MoonRise) == 10)] <- paste(data$MoonRise[which(nchar(data$MoonRise) == 10)], "00:00:00")
+  data$MoonRise <- as.POSIXct(data$MoonRise, format = "%Y-%m-%d %H:%M:%S", tz = tz)
+
+  return(data)
+}
+
+
