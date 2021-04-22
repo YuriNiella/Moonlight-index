@@ -375,17 +375,22 @@ MoonRise <- function(data, angle, tz) {
     aux1 <- data$Time.set[i]
     aux2 <- data$Time.ret[i]
     aux.times <- seq(aux1, aux2, by = 30 * 60)
+    
+    # Remove daylight times:
+    night.time <- getSunlightTimes(date = as.Date(aux.times[1]), lat = data$Lat[1], lon = data$Lon[1])
+    aux.times <- aux.times[-which(aux.times < night.time$night)]
+    
+    # Obtain moon angles:
     moon.angles <- NULL
-
     for (ii in 1:length(aux.times)) {
       aux.moon <- getMoonPosition(date = aux.times[ii], lat = data$Lat[1], lon = data$Lon[1], keep = "altitude")
       moon.angles <- c(moon.angles, aux.moon$altitude * 57.2958)
     }
 
+    # Obtain time of moon rise above mountain:
     moon.aux <- data.frame(Time = aux.times, Angle = moon.angles)
+      attributes(moon.aux$Time)$tzone <- tz # Convert to local time!
     moon.time <- moon.aux$Time[which(moon.aux$Angle >= angle)[1]]
-    attributes(moon.time)$tzone <- tz # Convert to local time!
-
     data$MoonRise[i] <- as.character(moon.time)
     setTxtProgressBar(pb, i)
   }
@@ -397,4 +402,5 @@ MoonRise <- function(data, angle, tz) {
   return(data)
 }
 
-
+## Update code:
+# save.image(file='Moonlight_index.RData')
