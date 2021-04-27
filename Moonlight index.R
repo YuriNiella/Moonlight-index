@@ -367,37 +367,64 @@ MoonIndex <- function(data, angle) {
 MoonRise <- function(data, angle, tz) {
 
   data$MoonRise <- NA
+  data$Moon.rise.period <- NA
+  data$MoonSet <- NA
+  data$Moon.set.period <- NA
   moon.times <- NULL
 
   cat("Obtaining approximated times of moon rise", fill = 1)
   pb <-  txtProgressBar(min = 0, max = nrow(data), initial = 0, style = 3, width = 60)
+
   for (i in 1:nrow(data)) {
     aux1 <- data$Time.set[i]
-    aux2 <- data$Time.ret[i]
+    aux2 <- data$Time.ret[i] + (60*60*24)
     aux.times <- seq(aux1, aux2, by = 30 * 60)
-    
+      attributes(aux.times)$tzone <- tz # Convert to local time!
+
     # Remove daylight times:
-    night.time <- getSunlightTimes(date = as.Date(aux.times[1]), lat = data$Lat[1], lon = data$Lon[1])
-    aux.times <- aux.times[-which(aux.times < night.time$night)]
-    
+    night.time1 <- getSunlightTimes(date = as.Date(aux.times[1], tz = tz), lat = data$Lat[1], lon = data$Lon[1], tz = tz)
+    night.time2 <- getSunlightTimes(date = as.Date(aux.times[41], tz = tz), lat = data$Lat[1], lon = data$Lon[1], tz = tz)
+
     # Obtain moon angles:
     moon.angles <- NULL
     for (ii in 1:length(aux.times)) {
       aux.moon <- getMoonPosition(date = aux.times[ii], lat = data$Lat[1], lon = data$Lon[1], keep = "altitude")
       moon.angles <- c(moon.angles, aux.moon$altitude * 57.2958)
     }
-
-    # Obtain time of moon rise above mountain:
     moon.aux <- data.frame(Time = aux.times, Angle = moon.angles)
-      attributes(moon.aux$Time)$tzone <- tz # Convert to local time!
-    moon.time <- moon.aux$Time[which(moon.aux$Angle >= angle)[1]]
-    data$MoonRise[i] <- as.character(moon.time)
+    if (moon.aux$Angle[1] > angle) 
+      moon.aux <- moon.aux[-c(1:(which(moon.aux$Angle < 0)[1] - 1)), ]
+    
+    # Obtain time and period of moon rise above mountain:
+    moon.time.rise <- moon.aux$Time[which(moon.aux$Angle >= angle)][1]
+    moon.rise <- as.character(moon.time.rise)
+      if (nchar(moon.rise) == 10)
+        moon.rise <- paste(moon.rise, "00:00:00")
+    data$MoonRise[i] <- moon.rise
+    if (moon.time.rise >= night.time1$night & moon.time.rise < night.time2$dawn)
+      data$Moon.rise.period[i] <- "Night"
+    if (moon.time.rise < night.time1$night | moon.time.rise > night.time2$dawn)
+      data$Moon.rise.period[i] <- "Day"
+
+    # Obatin time and period of moon set on the horizon:
+    moon.aux <- subset(moon.aux, Time >= moon.time.rise)
+    moon.time.set <- moon.aux$Time[which(moon.aux$Angle <= 0)][1]
+    moon.set <- as.character(moon.time.set)
+      if (nchar(moon.set) == 10)
+        moon.set <- paste(moon.set, "00:00:00")
+    data$MoonSet[i] <- moon.set
+    if (moon.time.set >= night.time1$night & moon.time.set < night.time2$dawn)
+      data$Moon.set.period[i] <- "Night"
+    if (moon.time.set < night.time1$night | moon.time.set > night.time2$dawn)
+      data$Moon.set.period[i] <- "Day"
+
     setTxtProgressBar(pb, i)
   }
   close(pb)
 
   data$MoonRise[which(nchar(data$MoonRise) == 10)] <- paste(data$MoonRise[which(nchar(data$MoonRise) == 10)], "00:00:00")
   data$MoonRise <- as.POSIXct(data$MoonRise, format = "%Y-%m-%d %H:%M:%S", tz = tz)
+    data$MoonRise <- as.POSIXct(data$MoonSet, format = "%Y-%m-%d %H:%M:%S", tz = tz)
 
   return(data)
 }
